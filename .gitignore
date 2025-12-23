@@ -1,0 +1,8 @@
+logs/*
+inbox/*
+outbox/*
+receipts/*
+!logs/.gitkeep
+!inbox/.gitkeep
+!outbox/.gitkeep
+!receipts/.gitkeep

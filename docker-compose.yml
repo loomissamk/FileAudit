@@ -1,0 +1,47 @@
+services:
+  outbox:
+    build:
+      context: .
+      dockerfile: Dockerfile.outbox
+    volumes:
+      - ./outbox:/data/outbox
+      - ./inbox:/data/inbox
+      - ./receipts:/data/receipts
+      - ./logs:/data/logs
+    environment:
+      - POLL_SEC=1
+      - STABLE_SEC=2
+      - LOG_DIR=/data/logs
+      - INOTIFY
+      - MANIFEST_HMAC_KEY
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+  inbox:
+    build:
+      context: .
+      dockerfile: Dockerfile.inbox
+    volumes:
+      - ./inbox:/data/inbox
+      - ./receipts:/data/receipts
+      - ./logs:/data/logs
+    environment:
+      - POLL_SEC=1
+      - STABLE_SEC=2
+      - LOG_DIR=/data/logs
+      - INBOX_AUTOMANIFEST=1
+      - INOTIFY
+      - MANIFEST_HMAC_KEY
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL

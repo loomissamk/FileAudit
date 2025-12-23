@@ -1,0 +1,18 @@
+FROM debian:bookworm-slim AS build
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends g++ libssl-dev \
+  && rm -rf /var/lib/apt/lists/*
+WORKDIR /src
+COPY FileAudit.cpp /src/FileAudit.cpp
+RUN mkdir -p /out /out/lib \
+  && g++ -O2 -std=c++17 /src/FileAudit.cpp -o /out/file_audit -lssl -lcrypto \
+  && strip /out/file_audit \
+  && ldd /out/file_audit | awk 'index($3, "/") == 1 {print $3}' | xargs -r -I{} cp --parents {} /out/lib
+
+FROM gcr.io/distroless/cc-debian12:nonroot@sha256:2575808fe33e2a728348040ef2fd6757b0200a73ca8daebd0c258e2601e76c6d
+WORKDIR /data
+COPY --from=build /out/file_audit /file_audit
+COPY --from=build /out/lib/ /
+USER nonroot:nonroot
+ENTRYPOINT ["/file_audit"]
+CMD ["--mode","outbox"]
